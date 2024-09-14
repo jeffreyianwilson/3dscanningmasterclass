@@ -1,7 +1,7 @@
 # This python script uses Raw Therapee CLI commands to read a raw therapee pp3 file then adjust white balance and adjust exposure to a defined EV value with an exposure offset
 # By Jeffrey Ian Wilson for the 3D Scanning Masterclass (www.jeffreyianwilson.com)
 
-# Please note, this script is a work in progress
+# Please note, this script is a work in progress and has a few bugs.
 
 import exifread, math, fractions, os
 
