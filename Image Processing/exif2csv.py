@@ -1,3 +1,6 @@
+# This script parses a directory of image exif metadata, sorts by CreationDate tag and computes exposure values from camera settings
+# By Jeffrey Ian Wilson for the 3D Scanning Masterclass (www.jeffreyianwilson.com)
+
 import csv
 import math
 import os
