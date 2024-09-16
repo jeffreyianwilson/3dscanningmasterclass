@@ -1,3 +1,6 @@
+# This Agisoft Metashape Pro python script will automatically align, filter tie points and optimize cameras.
+# By Jeffrey Ian Wilson for the 3D Scanning Masterclass (www.jeffreyianwilson.com)
+
 import Metashape
 import sys
 
