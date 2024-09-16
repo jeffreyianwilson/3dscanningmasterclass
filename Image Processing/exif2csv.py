@@ -26,7 +26,7 @@ def run_exiftool_command(input_path):
     exiftool_command = (
         "c:/Apps/exiftool -csv -CreateDate -GPSPosition -Make -Model -ColorSpace -Megapixels -imageWidth -imageHeight "
         "-LensModel -focalLength -focalLengthIn35mmFormat -HyperfocalDistance -aperture -shutterSpeed "
-        "-iso -WhiteBalance -ColorTemperature *.* > " + metadata_file
+        "-iso -WhiteBalance -ColorTemperature *.* >" + metadata_file
     )
     os.system(exiftool_command)
     sort_csv_by_create_date(metadata_file)
@@ -74,8 +74,8 @@ def compute_exposure_value(metadata_file):
 
 
 # Define variables
-input_path = "D:/temp/"
-csv_path = "D:/temp/"
+input_path = "D:/OneDrive/3D Scanning Masterclass/97 - Scan Capture and Processing/02 - Source Data/01 - Drone/20240622"
+csv_path = "D:/"
 metadata_file = os.path.join(csv_path, "metadata.csv")
 
 # Read image exif data and write to csv file
