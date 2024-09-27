@@ -1,6 +1,6 @@
 from ultralytics import YOLO
-import cv2, torch, os, os.path, sys, math, shutil, gc
-from PIL import Image, ImageOps
+import cv2, os
+from PIL import Image
 import numpy as np
 
 Image.MAX_IMAGE_PIXELS = None
@@ -23,7 +23,7 @@ def get_yes_no_input(prompt):
             return user_input in ['y', 'yes']
         print("Invalid input. Please enter 'y' or 'n'.")
 
-def maskImage(segmentationClasses, mask_prefix, save_empty_masks):
+def maskImage(segmentationClasses, mask_prefix, save_empty_masks, use_subdirs):
     for root, dirs, files in os.walk(image_dir):
         for f_img in files:
             if f_img.endswith(('.png', '.jpg', '.jpeg')):
@@ -53,10 +53,19 @@ def maskImage(segmentationClasses, mask_prefix, save_empty_masks):
                         mask = mask * 255
                         
                         if np.any(mask) or save_empty_masks:
+                            if use_subdirs:
+                                # Create the same subdirectory structure in the output directory
+                                rel_path = os.path.relpath(root, image_dir)
+                                output_subdir = os.path.join(output_dir, rel_path)
+                                os.makedirs(output_subdir, exist_ok=True)
+                                save_path = output_subdir
+                            else:
+                                save_path = output_dir
+                            
                             # Save the mask with the user-defined prefix
                             mask_filename = f"{mask_prefix}{os.path.splitext(f_img)[0]}_mask.png"
                             mask_image = Image.fromarray(mask)
-                            mask_image.save(os.path.join(output_dir, mask_filename))
+                            mask_image.save(os.path.join(save_path, mask_filename))
                             
                             if np.any(mask):
                                 print(f"Objects detected and mask saved for {img_path}")
@@ -125,4 +134,7 @@ mask_prefix = input("Enter the prefix for mask filenames (press Enter for no pre
 # Ask user if they want to save empty masks
 save_empty_masks = get_yes_no_input("Do you want to save masks for images with no detected objects? (y/n): ")
 
-maskImage(segmentationClass, mask_prefix, save_empty_masks)
+# Ask user if they want to use subdirectories for output
+use_subdirs = get_yes_no_input("Do you want to maintain the input directory structure for output? (y/n): ")
+
+maskImage(segmentationClass, mask_prefix, save_empty_masks, use_subdirs)
