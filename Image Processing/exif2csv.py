@@ -1,6 +1,7 @@
 # This script parses a directory of image exif metadata, sorts by CreationDate tag and computes exposure values from camera settings
 # By Jeffrey Ian Wilson for the 3D Scanning Masterclass (www.jeffreyianwilson.com)
 
+
 import csv
 import math
 import os
@@ -21,13 +22,17 @@ def sort_csv_by_create_date(csv_file):
         writer.writerow(header)  # Write the header
         writer.writerows(rows)   # Write sorted rows
 
-def run_exiftool_command(input_path):
+def run_exiftool_command(input_path, metadata_file):
+    # Change directory to the input path
     os.chdir(input_path)
+
+    # Build the exiftool command using proper path handling
     exiftool_command = (
-        "c:/Apps/exiftool -csv -CreateDate -GPSPosition -Make -Model -ColorSpace -Megapixels -imageWidth -imageHeight "
-        "-LensModel -focalLength -focalLengthIn35mmFormat -HyperfocalDistance -aperture -shutterSpeed "
-        "-iso -WhiteBalance -ColorTemperature *.* >" + metadata_file
+        f'c:/Apps/exiftool -csv -r -ext dng -FileCreateDate -GPSPosition -Make -Model -ColorSpace -Megapixels '
+        f'-imageWidth -imageHeight -LensModel -focalLength -focalLengthIn35mmFormat -HyperfocalDistance '
+        f'-aperture -shutterSpeed -iso -WhiteBalance -ColorTemperature "{input_path}" > "{metadata_file}"'
     )
+
     os.system(exiftool_command)
     sort_csv_by_create_date(metadata_file)
 
@@ -41,7 +46,7 @@ def remove_characters_from_csv(csv_file, characters_to_remove):
     with open(csv_file, 'w') as file:
         file.write(csv_content)
 
-def compute_exposure_value(metadata_file):
+def compute_exposure_value(input_path, metadata_file):
     temp_file = "temp_metadata.csv"
 
     with open(metadata_file, 'r') as infile, open(temp_file, 'w', newline='') as outfile:
@@ -51,7 +56,7 @@ def compute_exposure_value(metadata_file):
         writer.writeheader()
 
         for row in reader:
-            sourcePath = input_path + row['SourceFile']
+            sourcePath = os.path.join(input_path, row['SourceFile'])
             model = row['Model']
             try:
                 aperture = float(row['Aperture'])
@@ -60,7 +65,7 @@ def compute_exposure_value(metadata_file):
                 continue  # Skip this row if aperture is not valid
             shutter_speed = row['ShutterSpeed']
             numerator, denominator = map(float, shutter_speed.split('/'))
-            shutter_speed = float(numerator)/float(denominator)
+            shutter_speed = numerator / denominator
             iso = float(row['ISO'])
 
             # Add path to SourceFile
@@ -72,18 +77,14 @@ def compute_exposure_value(metadata_file):
 
     os.replace(temp_file, metadata_file)
 
-
 # Define variables
-input_path = "D:/OneDrive/3D Scanning Masterclass/97 - Scan Capture and Processing/02 - Source Data/01 - Drone/20240622"
-csv_path = "D:/"
-metadata_file = os.path.join(csv_path, "metadata.csv")
+file_format = "dng"
+input_path = r"D:/OneDrive/3D Scanning Masterclass/97 - Scan Capture and Processing/01 - Raw Data/"
+metadata_file = r"D:/OneDrive/3D Scanning Masterclass/97 - Scan Capture and Processing/01 - Raw Data/metadata.csv"
 
 # Read image exif data and write to csv file
-run_exiftool_command(input_path)
+run_exiftool_command(input_path, metadata_file)
 
-# Characters to remove from the CSV file
-#characters_to_remove = [' ', 'mm', '+', "f/"]
-#remove_characters_from_csv(metadata_file, characters_to_remove)
+# Compute exposure value based on metadata
+compute_exposure_value(input_path, metadata_file)
 
-# Pass metadata_file as an argument to compute exposure
-compute_exposure_value(metadata_file)
