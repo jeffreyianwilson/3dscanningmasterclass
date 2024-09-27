@@ -16,7 +16,14 @@ def get_segmentation_classes():
         except ValueError:
             print("Invalid input. Please enter numbers separated by commas.")
 
-def maskImage(segmentationClasses, mask_prefix):
+def get_yes_no_input(prompt):
+    while True:
+        user_input = input(prompt).lower()
+        if user_input in ['y', 'yes', 'n', 'no']:
+            return user_input in ['y', 'yes']
+        print("Invalid input. Please enter 'y' or 'n'.")
+
+def maskImage(segmentationClasses, mask_prefix, save_empty_masks):
     for root, dirs, files in os.walk(image_dir):
         for f_img in files:
             if f_img.endswith(('.png', '.jpg', '.jpeg')):
@@ -27,11 +34,11 @@ def maskImage(segmentationClasses, mask_prefix):
                         # Get original image dimensions
                         orig_width, orig_height = image.size
                         
+                        # Create a single mask for all specified segmentation classes
+                        mask = np.zeros((orig_height, orig_width), dtype=np.uint8)
+                        
                         results = model(image, conf=confidence)
                         for r in results:
-                            # Create a single mask for all specified segmentation classes
-                            mask = np.zeros((orig_height, orig_width), dtype=np.uint8)
-                            
                             # Iterate through all detected objects
                             for i, (box, cls) in enumerate(zip(r.boxes.xyxy, r.boxes.cls)):
                                 if int(cls) in segmentationClasses:
@@ -41,20 +48,22 @@ def maskImage(segmentationClasses, mask_prefix):
                                         object_mask_resized = cv2.resize(object_mask, (orig_width, orig_height))
                                         # Combine masks using logical OR
                                         mask = np.logical_or(mask, object_mask_resized > 0.5).astype(np.uint8)
+                        
+                        # Convert boolean mask to 0 and 255 values
+                        mask = mask * 255
+                        
+                        if np.any(mask) or save_empty_masks:
+                            # Save the mask with the user-defined prefix
+                            mask_filename = f"{mask_prefix}{os.path.splitext(f_img)[0]}_mask.png"
+                            mask_image = Image.fromarray(mask)
+                            mask_image.save(os.path.join(output_dir, mask_filename))
                             
-                            # Only save the mask if objects were detected
                             if np.any(mask):
-                                # Convert boolean mask to 0 and 255 values
-                                mask = mask * 255
-                                
-                                # Save the combined mask with the user-defined prefix
-                                mask_filename = f"{mask_prefix}{os.path.splitext(f_img)[0]}_mask.png"
-                                mask_image = Image.fromarray(mask)
-                                mask_image.save(os.path.join(output_dir, mask_filename))
-                                
-                                print(f"Mask saved for {img_path}")
+                                print(f"Objects detected and mask saved for {img_path}")
                             else:
-                                print(f"No objects detected in {img_path}")
+                                print(f"No objects detected, blank mask saved for {img_path}")
+                        else:
+                            print(f"No objects detected, mask not saved for {img_path}")
                             
                 except Exception as e:
                     print(f"Error processing {img_path}: {e}")
@@ -113,4 +122,7 @@ confidence = float(input("Enter the confidence threshold (0.0 to 1.0): "))
 # Get mask filename prefix from user
 mask_prefix = input("Enter the prefix for mask filenames (press Enter for no prefix): ")
 
-maskImage(segmentationClass, mask_prefix)
+# Ask user if they want to save empty masks
+save_empty_masks = get_yes_no_input("Do you want to save masks for images with no detected objects? (y/n): ")
+
+maskImage(segmentationClass, mask_prefix, save_empty_masks)
