@@ -59,6 +59,7 @@ temperature = 65000
 new_camera_ev = 13.5
 exposure_offset = 0.0
 adjust_exposure = True
+navvis_image = True
 
 # Iterate over each file in the directory
 for filename in os.listdir(image_path_input):
@@ -97,5 +98,40 @@ for filename in os.listdir(image_path_input):
         ]
         subprocess.run(command, check=True)
 
+import os
+import re
+import shutil
+
+def sort_navvis_images(image_path_output):
+    # Ensure the source directory exists
+    if not os.path.exists(image_path_output):
+        print(f"Error: Source directory does not exist.")
+        return
+
+    # Regular expression to match "cam#" in filenames
+    cam_pattern = re.compile(r'cam(\d+)')
+
+    # Iterate through all files in the source directory
+    for filename in os.listdir(image_path_output):
+        file_path = os.path.join(image_path_output, filename)
+        
+        # Check if it's a file (not a directory)
+        if os.path.isfile(file_path):
+            # Search for "cam#" in the filename
+            match = cam_pattern.search(filename)
+            
+            if match:
+                cam_number = match.group(1)
+                target_dir = os.path.join(image_path_output, f"cam{cam_number}")
+                
+                # Create the target directory if it doesn't exist
+                os.makedirs(target_dir, exist_ok=True)
+                
+                # Move the file to the target directory
+                target_path = os.path.join(target_dir, filename)
+                shutil.move(file_path, target_path)
+                print(f"Moved '{filename}' to '{target_dir}'")
         # Optionally, remove the temporary pp3 file after processing
-        #os.remove(new_pp3_file)
+
+if navvis_image:
+    sort_navvis_images(image_path_output)    #os.remove(new_pp3_file)
