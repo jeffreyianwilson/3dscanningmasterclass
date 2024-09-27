@@ -52,11 +52,12 @@ def update_pp3_file(pp3_file, variables_to_change):
         f.writelines(all_lines)
 
 # Path to the directory of images
-image_path_input = "D:\\OneDrive\\3D Scanning Masterclass\\97 - Scan Capture and Processing\\01 - Raw Data\\2024-09-21\\Navvis MLX\\2024-09-21_20.15.07\\camCC"
-image_path_output = "D:\\OneDrive\\3D Scanning Masterclass\\97 - Scan Capture and Processing\\02 - Source Data\\2024-09-21\\Navvis MLX\\01_ev13.5\\"
-pp3_file = "D:\\OneDrive\\3D Scanning Masterclass\\97 - Scan Capture and Processing\\01 - Raw Data\\Color Calibration\\navvisMLX.pp3"
-temperature = 65000
-new_camera_ev = 13.5
+image_path_input = "D:\\OneDrive\\3D Scanning Masterclass\\97 - Scan Capture and Processing\\01 - Raw Data\\2024-09-21\\Navvis VLX3\\2024-09-21_19.09.20\\camCC"
+image_path_output = "D:\\OneDrive\\3D Scanning Masterclass\\97 - Scan Capture and Processing\\02 - Source Data\\2024-09-21\\Navvis VLX3\\01_ev14.5"
+pp3_file = "D:\\OneDrive\\3D Scanning Masterclass\\97 - Scan Capture and Processing\\01 - Raw Data\\Color Calibration\\navvisVLX.pp3"
+temperature = 5500
+new_camera_ev = 14.5
+base_ev = 0  # Reference point for EV adjustment
 exposure_offset = 0.0
 adjust_exposure = True
 navvis_image = True
@@ -71,16 +72,18 @@ for filename in os.listdir(image_path_input):
         new_pp3_file = os.path.join(image_path_input, filename + ".pp3")
 
         if adjust_exposure:
-            compensation = round(float(get_camera_ev(input_image)) - new_camera_ev, 2) + exposure_offset
+            camera_ev = float(get_camera_ev(input_image))
+            # Correct the compensation calculation
+            compensation = round(new_camera_ev - camera_ev, 2) + exposure_offset
             variables_to_change = {'Temperature': temperature, 'Compensation': compensation}
         else:
             variables_to_change = {'Temperature': temperature}
 
         print(f"Processing file: {filename}")
         if adjust_exposure:
-            print(f"Camera EV: {get_camera_ev(input_image)}")  
-            print(f"New Camera EV: {new_camera_ev}")
-            print(f"Exposure Offset: {compensation}")
+            print(f"Camera EV: {camera_ev}")  
+            print(f"Target EV: {new_camera_ev}")
+            print(f"Exposure Compensation: {compensation}")
 
         # Copy the original pp3 file to the new one and update it
         import shutil
