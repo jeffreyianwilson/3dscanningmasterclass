@@ -1,4 +1,4 @@
-# This Agisoft Metashape Pro python script will automatically import masks for a multi-camera rig if subdirectory structure is the same.
+# This Agisoft Metashape Pro python script will automatically import masks on selected images for a multi-camera rig if subdirectory structure is the same.
 # By Jeffrey Ian Wilson for the 3D Scanning Masterclass (www.jeffreyianwilson.com)
 
 import Metashape
@@ -35,11 +35,19 @@ def import_multi_camera_rig_masks():
                     return os.path.join(root, file)
         return None
 
-    # Get total number of cameras for progress calculation
-    total_cameras = len(chunk.cameras)
+    # Get selected cameras
+    selected_cameras = [camera for camera in chunk.cameras if camera.selected]
 
-    # Iterate through cameras in the chunk
-    for i, camera in enumerate(chunk.cameras):
+    # Check if any cameras are selected
+    if not selected_cameras:
+        print("No cameras are selected. Please select at least one camera and try again.")
+        return
+
+    # Get total number of selected cameras for progress calculation
+    total_cameras = len(selected_cameras)
+
+    # Iterate through selected cameras in the chunk
+    for i, camera in enumerate(selected_cameras):
         # Update progress
         progress = (i + 1) / total_cameras
         print(f"Progress: {progress:.1%}")
@@ -63,7 +71,7 @@ def import_multi_camera_rig_masks():
         # Update Metashape UI
         Metashape.app.update()
 
-    print("Mask import complete.")
+    print("Mask import complete for selected cameras.")
 
 # Run the script
 import_multi_camera_rig_masks()
