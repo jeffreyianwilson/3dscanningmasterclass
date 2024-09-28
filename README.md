@@ -1,5 +1,5 @@
 # 3D Scanning Masterclass
-A collection of sample data, trained computer vision models and various python scripts for processing data for the 3D Scanning Masterclass
+A collection of sample data, trained computer vision models and various python scripts for processing data for the 3D Scanning Masterclass.
 
 <b>Image Processing/exif2csv.py</b><br>
 Python script to parse image exif metadata and compute exposure values into a CSV file.<br><br>
