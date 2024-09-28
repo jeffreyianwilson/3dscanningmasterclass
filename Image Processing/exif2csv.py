@@ -5,6 +5,9 @@ import csv
 import math
 import os
 import subprocess
+import matplotlib.pyplot as plt
+import pandas as pd
+from datetime import datetime
 
 def sort_csv_by_create_date(csv_file):
     # Read the CSV content
@@ -123,6 +126,46 @@ def remove_duplicates(csv_file):
     os.replace(temp_file, csv_file)
     print(f"Duplicates removed. Unique rows: {len(seen)}")
 
+def plot_exposure_values(metadata_file):
+    # Read the CSV file
+    df = pd.read_csv(metadata_file)
+    
+    # Convert FileCreateDate to datetime, handling timezone information
+    df['FileCreateDate'] = pd.to_datetime(df['FileCreateDate'], format='%Y:%m:%d %H:%M:%S%z', errors='coerce')
+    
+    # Drop rows where datetime conversion failed
+    df = df.dropna(subset=['FileCreateDate'])
+    
+    # Convert ExposureValue to float
+    df['ExposureValue'] = df['ExposureValue'].astype(float)
+    
+    # Calculate average, max, and min exposure values
+    avg_exposure = df['ExposureValue'].mean()
+    max_exposure = df['ExposureValue'].max()
+    min_exposure = df['ExposureValue'].min()
+    
+    # Create the plot
+    plt.figure(figsize=(12, 6))
+    plt.scatter(df['FileCreateDate'], df['ExposureValue'], alpha=0.5)
+    plt.axhline(y=avg_exposure, color='r', linestyle='--', label=f'Average: {avg_exposure:.2f}')
+    plt.axhline(y=max_exposure, color='g', linestyle=':', label=f'Max: {max_exposure:.2f}')
+    plt.axhline(y=min_exposure, color='b', linestyle=':', label=f'Min: {min_exposure:.2f}')
+    
+    plt.xlabel('File Creation Date')
+    plt.ylabel('Exposure Value')
+    plt.title('Exposure Values Over Time')
+    plt.legend()
+    
+    # Rotate and align the tick labels so they look better
+    plt.gcf().autofmt_xdate()
+    
+    # Save the plot
+    output_filename = metadata_file.rsplit('.', 1)[0] + '_exposure_plot.jpg'
+    plt.savefig(output_filename)
+    plt.close()
+    
+    print(f"Plot saved as {output_filename}")
+
 # Define variables
 file_format = "dng"
 input_path = r"D:\OneDrive\3D Scanning Masterclass\97 - Scan Capture and Processing\01 - Raw Data\2024-09-21\Navvis MLX"
@@ -140,3 +183,6 @@ compute_exposure_value(input_path, metadata_file)
 # Remove duplicates if the flag is set to True
 if remove_duplicates_flag:
     remove_duplicates(metadata_file)
+
+# After processing the metadata file
+plot_exposure_values(metadata_file)
